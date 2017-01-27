@@ -35,6 +35,8 @@ whitespace	[ \n\r\t]*
 "DEC"			{ return INSTRUCTION_DEC; }
 "PUSH"			{ return INSTRUCTION_PUSH; }
 "POP"			{ return INSTRUCTION_POP; }
+"CALL"          { return INSTRUCTION_CALL; }
+"RETURN"        { return INSTRUCTION_RETURN; }
 
 "JMP"			{ return INSTRUCTION_JUMP; }
 "JMPZ"			{ return INSTRUCTION_JUMPZ; }
