@@ -26,6 +26,16 @@ whitespace	[ \n\r\t]*
 
 "MOV"			{ return INSTRUCTION_MOV; }
 "ADD"			{ return INSTRUCTION_ADD; }
+"SUB"			{ return INSTRUCTION_SUB; }
+"AND"			{ return INSTRUCTION_AND; }
+"OR"			{ return INSTRUCTION_OR; }
+"XOR"			{ return INSTRUCTION_XOR; }
+"NOT"			{ return INSTRUCTION_NOT; }
+"INC"			{ return INSTRUCTION_INC; }
+"DEC"			{ return INSTRUCTION_DEC; }
+"PUSH"			{ return INSTRUCTION_PUSH; }
+"POP"			{ return INSTRUCTION_POP; }
+
 "JMP"			{ return INSTRUCTION_JUMP; }
 "JMPZ"			{ return INSTRUCTION_JUMPZ; }
 "JMPNZ"			{ return INSTRUCTION_JUMPNZ; }
@@ -43,6 +53,7 @@ whitespace	[ \n\r\t]*
 ","				{ return COMMA; }
 ";"				{ return SEMICOLON; }
 ":"				{ return COLON; }
+{hex_literal}	{ yylval.ival = (unsigned char) strtol(yytext, NULL, 0); return NUMERIC_LITERAL; }
 {int_const}		{ yylval.ival = (unsigned char) atoi(yytext); return NUMERIC_LITERAL; }
 {string}		{ yylval.sval = strdup(yytext); return IDENTIFIER; }
 .				{ yyerror(yytext); }

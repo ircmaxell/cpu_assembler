@@ -23,7 +23,11 @@ instructionList *root;
 
 %token 	INSTRUCTION_HALT
 %token 	INSTRUCTION_MOV 
-%token	INSTRUCTION_ADD 
+%token	INSTRUCTION_ADD INSTRUCTION_SUB
+%token 	INSTRUCTION_AND INSTRUCTION_OR INSTRUCTION_XOR
+%token 	INSTRUCTION_NOT
+%token  INSTRUCTION_INC INSTRUCTION_DEC
+%token  INSTRUCTION_PUSH INSTRUCTION_POP
 %token 	INSTRUCTION_JUMP 
 %token  INSTRUCTION_JUMPZ INSTRUCTION_JUMPNZ
 %token  INSTRUCTION_JUMPS INSTRUCTION_JUMPNS
@@ -34,8 +38,10 @@ instructionList *root;
 %token 	COMMA COLON SEMICOLON
 
 %type <rname> register_name
-%type <inst> instruction instruction_move instruction_add instruction_jump label halt
+%type <inst> instruction instruction_move instruction_alu instruction_jump label halt
 %type <list> program
+
+
 %start program
 
 %%
@@ -60,7 +66,7 @@ halt
 
 instruction
 	: instruction_move
-	| instruction_add
+	| instruction_alu
 	| instruction_jump
 	| halt
 	;
@@ -82,9 +88,27 @@ instruction_jump
 		{ $$ = makeInstIdentifier(INST_JUMPNC, $2); }
 	;
 
-instruction_add
+instruction_alu
 	: INSTRUCTION_ADD register_name COMMA register_name SEMICOLON 
 		{ $$ = makeInstRegReg(INST_ADD, $2, $4); }
+	| INSTRUCTION_SUB register_name COMMA register_name SEMICOLON 
+		{ $$ = makeInstRegReg(INST_SUB, $2, $4); }
+	| INSTRUCTION_AND register_name COMMA register_name SEMICOLON 
+		{ $$ = makeInstRegReg(INST_AND, $2, $4); }
+	| INSTRUCTION_OR register_name COMMA register_name SEMICOLON 
+		{ $$ = makeInstRegReg(INST_OR, $2, $4); }
+	| INSTRUCTION_XOR register_name COMMA register_name SEMICOLON 
+		{ $$ = makeInstRegReg(INST_XOR, $2, $4); }
+	| INSTRUCTION_NOT register_name COMMA register_name SEMICOLON 
+		{ $$ = makeInstRegReg(INST_NOT, $2, $4); }
+	| INSTRUCTION_INC register_name COMMA register_name SEMICOLON 
+		{ $$ = makeInstRegReg(INST_INC, $2, $4); }
+	| INSTRUCTION_DEC register_name COMMA register_name SEMICOLON 
+		{ $$ = makeInstRegReg(INST_DEC, $2, $4); }
+	| INSTRUCTION_PUSH register_name SEMICOLON
+		{ $$ = makeInstReg(INST_PUSH, $2); }
+	| INSTRUCTION_POP register_name SEMICOLON
+		{ $$ = makeInstReg(INST_POP, $2); }
 	;
 
 instruction_move

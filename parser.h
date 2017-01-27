@@ -21,7 +21,16 @@ typedef enum registerName {
 typedef enum instructionType {
 	INST_HALT,
 	INST_ADD,
+	INST_SUB,
+	INST_AND,
+	INST_OR,
+	INST_XOR,
+	INST_NOT,
+	INST_INC,
+	INST_DEC,
 	INST_MOV,
+	INST_PUSH,
+	INST_POP,
 	INST_JUMP,
 	INST_JUMPZ,
 	INST_JUMPNZ,
@@ -64,6 +73,8 @@ instructionList *makeInstList(instruction *first);
 instructionList *addInstructionToList(instructionList *list, instruction *next);
 
 instruction *makeInst(instructionType type);
+instruction *makeInstReg(instructionType type, registerName a);
+instruction *makeInstNum(instructionType type, unsigned char a);
 instruction *makeInstRegReg(instructionType type, registerName a, registerName b);
 instruction *makeInstRegNum(instructionType type, registerName a, unsigned char b);
 instruction *makeInstIdentifier(instructionType type, char *label);

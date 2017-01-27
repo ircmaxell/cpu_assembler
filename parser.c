@@ -31,6 +31,24 @@ instruction *makeInst(instructionType type) {
 	return result;
 }
 
+instruction *makeInstReg(instructionType type, registerName a) {
+	instruction *result = (instruction*) malloc(sizeof(instruction));
+	result->type = type;
+
+	result->arg1.type = ARG_REGISTER;
+	result->arg1.value.reg = a;
+
+	return result;
+}
+
+instruction *makeInstNum(instructionType type, unsigned char a) {
+	instruction *result = (instruction*) malloc(sizeof(instruction));
+	result->type = type;
+	result->arg1.type = ARG_LITERAL;
+	result->arg1.value.byte = a;
+	return result;
+}
+
 instruction *makeInstRegReg(instructionType type, registerName a, registerName b) {
 	instruction *result = (instruction*) malloc(sizeof(instruction));
 	result->type = type;
