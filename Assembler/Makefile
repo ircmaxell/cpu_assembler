@@ -22,3 +22,5 @@ clean:
 	rm asm.tab.*
 	rm test
 
+self-test: compile
+	./test self-test.asm > self-test.rom
