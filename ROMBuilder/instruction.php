@@ -221,7 +221,7 @@ function jump($name): array {
 
 	$maskPartsImmediate = [
 		[
-			["PC-O", "MEM-O", "INC-W", "J1-W"],
+			["PC-O", "MEM-O", "INC-W"],
 			["PC-O", "MEM-O"],
 			["INCDEC-O", "PC-W"],
 			["INCDEC-O"],
@@ -238,7 +238,7 @@ function jump($name): array {
 			["PC-O", "MEM-O"],
 			["INCDEC-O", "PC-W"],
 			["INCDEC-O"],
-			["PC-O", "MEM-O", "INC-W", "J1-W"],
+			["PC-O", "MEM-O", "INC-W", "J2-W"],
 			["PC-O", "MEM-O"],
 		], [
 			"default" => $maskPartsNormal[$inverse ? 1 : 0],
