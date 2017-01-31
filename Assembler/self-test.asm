@@ -14,7 +14,17 @@ start:
 	CALL aluORTest3;
 	CALL aluORTest4;
 	CALL testPush;
-	JMP end;
+	CALL fibo;
+
+fibo:
+	MOV RA, 0x01;
+	MOV RB, 0x01;
+fiboLoop:
+	ADD RC, RB;
+	JMPC fibo;
+	MOV RA, RB;
+	MOV RC, RB;
+	JMP fiboLoop;
 
 pass:
 	RETURN;

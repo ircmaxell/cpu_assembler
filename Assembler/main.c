@@ -16,9 +16,8 @@ int main(int argc, char **argv) {
 			result = parse(in);
 			fclose(in);
 			bytes = assemble(result, &size);
-			printf("Result of %zu instructions (%zu bytes):", result->size, size);
 			for (i = 0; i < size; i++) {
-				printf(" 0x%02x", (unsigned char) bytes[i]);
+				printf(" 0x%02x,", (unsigned char) bytes[i]);
 			}
 			printf("\n");
 		}
