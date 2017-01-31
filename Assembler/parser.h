@@ -31,6 +31,8 @@ typedef enum instructionType {
 	INST_MOV,
 	INST_PUSH,
 	INST_POP,
+	INST_CALL,
+	INST_RETURN,
 	INST_JUMP,
 	INST_JUMPZ,
 	INST_JUMPNZ,

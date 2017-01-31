@@ -1,87 +1,118 @@
 // This is a self-test, similar to a POST (Power-On Self Test)
 
+start:
+	CALL registerATest;
+	CALL registerBTest;
+	CALL registerCTest;
+	CALL aluADDTest;
+	CALL aluADDTest2;
+	CALL aluADDTest3;
+	CALL aluANDTest;
+	CALL aluANDTest2;
+	CALL aluORTest;
+	CALL aluORTest2;
+	CALL aluORTest3;
+	CALL aluORTest4;
+	CALL testPush;
+	JMP end;
+
+pass:
+	RETURN;
+
 registerATest:
 		// Load all 1's into RA
 		MOV RA, 0xFF;
 		// Compute the NOT of RA
 		NOT RA, RA;
 		// If ~A is 0 (passing) go to B test
-		JMPZ registerBTest;
+		JMPZ pass;
 		// We failed the test, halt here (memory address indicates error)
 		HALT;
+
 registerBTest:
 		MOV RB, 0xFF;
 		NOT RB, RB;
-		JMPZ registerCTest;
+		JMPZ pass;
 		HALT;
+
 registerCTest:
 		MOV RC, 0xFF;
 		NOT RC, RC;
-		JMPZ aluADDTest;
+		JMPZ pass;
 		HALT;
+
 aluADDTest:	// Ensures it can count all the way up through carry
 		MOV RA, 0x00;
 	aluADDLoop:
 		INC RA, RA;
 		JMPNZ aluADDLoop; // Count up to 255
-		JMPC aluADDTest2;
+		JMPC pass;
 		HALT;
+
 aluADDTest2:
 		MOV RA, 0x0F;
 		MOV RB, 0xF0;
 		ADD RC, RB;
 		MOV RA, 0xFF;
 		XOR RC, RC;
-		JMPZ aluADDTest3;
+		JMPZ pass;
 		HALT;
+
 aluADDTest3:
 		MOV RA, 0x01;
 		MOV RB, 0x01;
 		ADD RC, RB;
 		MOV RA, 0x02;
 		XOR RB, RC;
-		JMPZ aluANDTest;
+		JMPZ pass;
 		HALT;
+
 aluANDTest:
 		MOV RA, 0xFF;
 		MOV RB, 0x00;
 		AND RC, RB;
-		JMPZ aluANDTest2;
+		JMPZ pass;
 		HALT;
+
 aluANDTest2:
 		MOV RA, 0xFF; // A = 11111111
 		MOV RB, 0xFF; // B = 11111111
 		AND RC, RB;   // C = A AND B
 		NOT RC, RC;	  // C = NOT C
-		JMPZ aluORTest;
+		JMPZ pass;
 		HALT;
+
 aluORTest:
 		MOV RA, 0x00;
 		MOV RB, 0x00;
 		OR RC, RB;
-		JMPZ aluORTest2;
+		JMPZ pass;
 		HALT;
+
 aluORTest2:
 		MOV RA, 0xFF; // A = 11111111
 		MOV RB, 0xFF; // B = 11111111
 		OR RC, RB;   // C = A OR B
 		NOT RC, RC;	  // C = NOT C
-		JMPZ aluORTest3;
+		JMPZ pass;
 		HALT;
+
 aluORTest3:
 		MOV RA, 0x00; // A = 00000000
 		MOV RB, 0xFF; // B = 11111111
 		OR RC, RB;   // C = A OR B
 		NOT RC, RC;	  // C = NOT C
-		JMPZ aluORTest4;
+		JMPZ pass;
 		HALT;
+
 aluORTest4:
 		MOV RA, 0xFF; // A = 11111111
 		MOV RB, 0x00; // B = 00000000
 		OR RC, RB;   // C = A OR B
 		NOT RC, RC;	  // C = NOT C
-		JMPZ testPush;
+		JMPZ pass;
 		HALT;
+
 testPush:
 		MOV RA, 0x01;
 		MOV RB, 0x02;
@@ -95,7 +126,7 @@ testPush:
 		POP RC;
 		MOV RA, RB;
 		XOR RC, RC;
-		JMPZ end;
+		JMPZ pass;
 		HALT;		
 end:
 		MOV RA, 0xFF;

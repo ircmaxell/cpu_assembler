@@ -28,6 +28,7 @@ instructionList *root;
 %token 	INSTRUCTION_NOT
 %token  INSTRUCTION_INC INSTRUCTION_DEC
 %token  INSTRUCTION_PUSH INSTRUCTION_POP
+%token 	INSTRUCTION_CALL INSTRUCTION_RETURN
 %token 	INSTRUCTION_JUMP 
 %token  INSTRUCTION_JUMPZ INSTRUCTION_JUMPNZ
 %token  INSTRUCTION_JUMPS INSTRUCTION_JUMPNS
@@ -38,7 +39,7 @@ instructionList *root;
 %token 	COMMA COLON SEMICOLON
 
 %type <rname> register_name
-%type <inst> instruction instruction_move instruction_alu instruction_jump label halt
+%type <inst> instruction instruction_move instruction_alu instruction_jump label halt instruction_stack
 %type <list> program
 
 
@@ -59,6 +60,17 @@ label
 		{ $$ = makeInstIdentifier(INST_LABEL, $1); }
 	;
 
+instruction_stack
+	: INSTRUCTION_PUSH register_name SEMICOLON
+		{ $$ = makeInstReg(INST_PUSH, $2); }
+	| INSTRUCTION_POP register_name SEMICOLON
+		{ $$ = makeInstReg(INST_POP, $2); }
+	| INSTRUCTION_CALL IDENTIFIER SEMICOLON
+		{ $$ = makeInstIdentifier(INST_CALL, $2); }
+	| INSTRUCTION_RETURN SEMICOLON
+		{ $$ = makeInst(INST_RETURN); }
+	;
+
 halt
 	: INSTRUCTION_HALT SEMICOLON
 		{ $$ = makeInst(INST_HALT); }
@@ -68,6 +80,7 @@ instruction
 	: instruction_move
 	| instruction_alu
 	| instruction_jump
+	| instruction_stack
 	| halt
 	;
 
@@ -105,10 +118,6 @@ instruction_alu
 		{ $$ = makeInstRegReg(INST_INC, $2, $4); }
 	| INSTRUCTION_DEC register_name COMMA register_name SEMICOLON 
 		{ $$ = makeInstRegReg(INST_DEC, $2, $4); }
-	| INSTRUCTION_PUSH register_name SEMICOLON
-		{ $$ = makeInstReg(INST_PUSH, $2); }
-	| INSTRUCTION_POP register_name SEMICOLON
-		{ $$ = makeInstReg(INST_POP, $2); }
 	;
 
 instruction_move

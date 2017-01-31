@@ -9,6 +9,8 @@ static void assembleALU(instruction *inst, assembleContext *context);
 static void assembleJump(instruction *inst, assembleContext *context);
 static void assembleMov(instruction *inst, assembleContext *context);
 static void assemblePushPop(instruction *inst, assembleContext *context);
+static void assembleCall(instruction *inst, assembleContext *context);
+static void assembleReturn(instruction *inst, assembleContext *context);
 static void addJumpLabelLocation(assembleContext *context, char* label);
 static void writeJumpLabelLocations(assembleContext *context);
 static void reallocResult(assembleContext *context, size_t size);
@@ -74,6 +76,12 @@ static void assembleInstruction(instruction *inst, assembleContext *context) {
 		case INST_POP:
 			assemblePushPop(inst, context);
 			break;
+		case INST_CALL:
+			assembleCall(inst, context);
+			break;
+		case INST_RETURN:
+			assembleReturn(inst, context);
+			break;
 		case INST_JUMP:
 		case INST_JUMPZ:
 		case INST_JUMPNZ:
@@ -135,6 +143,9 @@ static void assembleALU(instruction *inst, assembleContext *context) {
 		case TYPE_PAIR(ARG_REGISTER, ARG_REGISTER):
 			ASSEMBLE_REG_PAIR(encodedInstruction);
 			break;
+		case TYPE_PAIR(ARG_REGISTER, ARG_LITERAL):
+			ASSEMBLE_WRITE_LITERAL(encodedInstruction + 0x10);
+			break;
 		default:
 			printf("Mov instruction not built for %d, %d\n", inst->arg1.type, inst->arg2.type);
 			exit(-1);
@@ -145,25 +156,25 @@ static void assembleJump(instruction *inst, assembleContext *context) {
 	reallocResult(context, 3);
 	switch (inst->type) {
 		case INST_JUMP:
-			context->result[(context->offset)++] = 0x20;
+			context->result[(context->offset)++] = 0x30;
 			break;
 		case INST_JUMPZ:
-			context->result[(context->offset)++] = 0x22;
+			context->result[(context->offset)++] = 0x32;
 			break;
 		case INST_JUMPNZ:
-			context->result[(context->offset)++] = 0x23;
+			context->result[(context->offset)++] = 0x33;
 			break;
 		case INST_JUMPS:
-			context->result[(context->offset)++] = 0x24;
+			context->result[(context->offset)++] = 0x34;
 			break;
 		case INST_JUMPNS:
-			context->result[(context->offset)++] = 0x25;
+			context->result[(context->offset)++] = 0x35;
 			break;
 		case INST_JUMPC:
-			context->result[(context->offset)++] = 0x26;
+			context->result[(context->offset)++] = 0x36;
 			break;
 		case INST_JUMPNC:
-			context->result[(context->offset)++] = 0x27;
+			context->result[(context->offset)++] = 0x37;
 			break;
 	}
 	
@@ -188,6 +199,34 @@ static void assembleMov(instruction *inst, assembleContext *context) {
 			printf("Mov instruction not built for %d, %d\n", inst->arg1.type, inst->arg2.type);
 			exit(-1);
 	}
+}
+
+static void assembleCall(instruction *inst, assembleContext *context) {
+	size_t returnAddress = context->offset + 13;
+	reallocResult(context, 13);
+	context->result[(context->offset)++] = 0x03; // LOAD-I
+	context->result[(context->offset)++] = REGISTER_WO(RC);
+	context->result[(context->offset)++] = (unsigned char) ((returnAddress >> 8) & 0xFF);
+	context->result[(context->offset)++] = 0x07; // push
+	context->result[(context->offset)++] = REGISTER_RO(RC); // push
+	context->result[(context->offset)++] = 0x03; // LOAD-I
+	context->result[(context->offset)++] = REGISTER_WO(RC);
+	context->result[(context->offset)++] = (unsigned char) (returnAddress & 0xFF);
+	context->result[(context->offset)++] = 0x07; // push
+	context->result[(context->offset)++] = REGISTER_RO(RC); // push
+	context->result[(context->offset)++] = 0x30;
+	addJumpLabelLocation(context, inst->arg1.value.string);
+	context->result[(context->offset)++] = 0x00;
+	context->result[(context->offset)++] = 0x00;
+}
+
+static void assembleReturn(instruction *inst, assembleContext *context) {
+	reallocResult(context, 5);
+	context->result[(context->offset)++] = 0x08; // pop
+	context->result[(context->offset)++] = REGISTER_WO(RJ2); // push
+	context->result[(context->offset)++] = 0x08; // pop
+	context->result[(context->offset)++] = REGISTER_WO(RJ1); // push
+	context->result[(context->offset)++] = 0x31; // jump-indirect
 }
 
 static void assemblePushPop(instruction *inst, assembleContext *context) {
