@@ -14,7 +14,8 @@ start:
 	CALL aluORTest3;
 	CALL aluORTest4;
 	CALL testPush;
-	JMP end;
+	CALL reset;
+	JMP 0xFFFF;
 
 pass:
 	RETURN;
@@ -128,13 +129,13 @@ testPush:
 		XOR RC, RC;
 		JMPZ pass;
 		HALT;		
-end:
+reset:
 		MOV RA, 0xFF;
 		MOV RB, 0xFF;
 		MOV RC, 0xFF;
 		MOV RJ1, 0xFF;
 		MOV RJ2, 0xFF;
-		HALT;
+		RETURN;
 
 
 

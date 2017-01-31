@@ -12,10 +12,7 @@
 %option pointer
 %option caseless
 
-digit       [0-9]
-int_const   [0-9]+
 string      [a-zA-Z][a-zA-Z0-9]*
-hex_literal 0x[a-fA-F0-9]+
 comment     "//"[^\n]*
 whitespace	[ \n\r\t]*
 
@@ -55,7 +52,11 @@ whitespace	[ \n\r\t]*
 ","				{ return COMMA; }
 ";"				{ return SEMICOLON; }
 ":"				{ return COLON; }
-{hex_literal}	{ yylval.ival = (unsigned char) strtol(yytext, NULL, 0); return NUMERIC_LITERAL; }
-{int_const}		{ yylval.ival = (unsigned char) atoi(yytext); return NUMERIC_LITERAL; }
+0x[a-fA-F0-9]{1,2}  { yylval.ival = (unsigned char) strtol(yytext, NULL, 0); return NUMERIC_LITERAL; }
+0x[a-fA-F0-9]{3,4}  { yylval.address = (unsigned short) strtol(yytext, NULL, 0); return ADDRESS_LITERAL; }
+1?[0-9]{1,2}	{ yylval.ival = (unsigned char) atoi(yytext); return NUMERIC_LITERAL; }
+2[0-4][0-9]     { yylval.ival = (unsigned char) atoi(yytext); return NUMERIC_LITERAL; }
+25[0-5]         { yylval.ival = (unsigned char) atoi(yytext); return NUMERIC_LITERAL; }
+[0-9]*          {yylval.address = (unsigned short) atoi(yytext); return ADDRESS_LITERAL; }
 {string}		{ yylval.sval = strdup(yytext); return IDENTIFIER; }
 .				{ yyerror(yytext); }

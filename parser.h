@@ -77,6 +77,7 @@ instructionList *addInstructionToList(instructionList *list, instruction *next);
 instruction *makeInst(instructionType type);
 instruction *makeInstReg(instructionType type, registerName a);
 instruction *makeInstNum(instructionType type, unsigned char a);
+instruction *makeInstNumNum(instructionType type, unsigned char a, unsigned char b);
 instruction *makeInstRegReg(instructionType type, registerName a, registerName b);
 instruction *makeInstRegNum(instructionType type, registerName a, unsigned char b);
 instruction *makeInstIdentifier(instructionType type, char *label);

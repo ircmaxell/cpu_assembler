@@ -3,12 +3,14 @@
 #include "parser.h"
 #include "assemble.h"
 #include "uthash.h"
+#include "assert.h"
 
 static void assembleInstruction(instruction *inst, assembleContext *context);
 static void assembleALU(instruction *inst, assembleContext *context);
 static void assembleJump(instruction *inst, assembleContext *context);
 static void assembleMov(instruction *inst, assembleContext *context);
-static void assemblePushPop(instruction *inst, assembleContext *context);
+static void assemblePush(instruction *inst, assembleContext *context);
+static void assemblePop(instruction *inst, assembleContext *context);
 static void assembleCall(instruction *inst, assembleContext *context);
 static void assembleReturn(instruction *inst, assembleContext *context);
 static void addJumpLabelLocation(assembleContext *context, char* label);
@@ -73,8 +75,10 @@ static void assembleInstruction(instruction *inst, assembleContext *context) {
 			assembleMov(inst, context);
 			break;
 		case INST_PUSH:
+			assemblePush(inst, context);
+			break;
 		case INST_POP:
-			assemblePushPop(inst, context);
+			assemblePop(inst, context);
 			break;
 		case INST_CALL:
 			assembleCall(inst, context);
@@ -184,6 +188,14 @@ static void assembleJump(instruction *inst, assembleContext *context) {
 			context->result[(context->offset)++] = 0x00;
 			context->result[(context->offset)++] = 0x00;
 			break;
+		case ARG_LITERAL:
+			assert(inst->arg2.type == ARG_LITERAL);
+			context->result[(context->offset)++] = inst->arg1.value.byte;
+			context->result[(context->offset)++] = inst->arg2.value.byte;
+			break;
+		default:
+			printf("Jump instruction not built for %d\n", inst->arg1.type);
+			exit(-1);
 	}
 }
 
@@ -229,20 +241,28 @@ static void assembleReturn(instruction *inst, assembleContext *context) {
 	context->result[(context->offset)++] = 0x31; // jump-indirect
 }
 
-static void assemblePushPop(instruction *inst, assembleContext *context) {
+static void assemblePush(instruction *inst, assembleContext *context) {
 	switch (inst->arg1.type) {
 		case ARG_REGISTER:
 			reallocResult(context, 2);
-			if (inst->type == INST_PUSH	) {
-				context->result[(context->offset)++] = 0x07;
-				context->result[(context->offset)++] = REGISTER_RO(inst->arg1.value.reg);	
-			} else if (inst->type == INST_POP) {
-				context->result[(context->offset)++] = 0x08;
-				context->result[(context->offset)++] = REGISTER_WO(inst->arg1.value.reg);
-			}
+			context->result[(context->offset)++] = 0x07;
+			context->result[(context->offset)++] = REGISTER_RO(inst->arg1.value.reg);	
 			break;
 		default:
 			printf("PushPop instruction not built for %d\n", inst->arg1.type);
+			exit(-1);
+	}
+}
+
+static void assemblePop(instruction *inst, assembleContext *context) {
+	switch (inst->arg1.type) {
+		case ARG_REGISTER:
+			reallocResult(context, 2);
+			context->result[(context->offset)++] = 0x08;
+			context->result[(context->offset)++] = REGISTER_WO(inst->arg1.value.reg);
+			break;
+		default:
+			printf("Pop instruction not built for %d\n", inst->arg1.type);
 			exit(-1);
 	}
 }

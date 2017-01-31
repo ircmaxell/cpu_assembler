@@ -70,6 +70,16 @@ instruction *makeInstRegNum(instructionType type, registerName a, unsigned char 
 	return result;
 }
 
+instruction *makeInstNumNum(instructionType type, unsigned char a, unsigned char b) {
+	instruction *result = (instruction*) malloc(sizeof(instruction));
+	result->type = type;
+	result->arg1.type = ARG_LITERAL;
+	result->arg1.value.byte = a;
+	result->arg2.type = ARG_LITERAL;
+	result->arg2.value.byte = b;
+	return result;
+}
+
 instruction *makeInstIdentifier(instructionType type, char *label) {
 	instruction *result = (instruction*) malloc(sizeof(instruction));
 	result->type = type;

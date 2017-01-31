@@ -16,6 +16,7 @@ instructionList *root;
 %union {
 	char			*sval;
 	unsigned char   ival;
+	unsigned short  address;
 	registerName 	rname;
 	instruction 	*inst;
 	instructionList *list;
@@ -35,12 +36,22 @@ instructionList *root;
 %token  INSTRUCTION_JUMPC INSTRUCTION_JUMPNC
 %token 	REGISTER_RA REGISTER_RB REGISTER_RC REGISTER_RJ1 REGISTER_RJ2
 %token <ival> NUMERIC_LITERAL
+%token <address> ADDRESS_LITERAL
 %token <sval> IDENTIFIER
 %token 	COMMA COLON SEMICOLON
 
 %type <rname> register_name
-%type <inst> instruction instruction_move instruction_alu instruction_jump label halt instruction_stack
+
+%type <inst> instruction 
+%type <inst> instruction_move 
+%type <inst> instruction_alu  
+%type <inst> instruction_stack
+%type <inst> instruction_jump instruction_jump_direct_short instruction_jump_direct_long instruction_jump_label
+%type <inst> label 
+%type <inst> halt
+
 %type <list> program
+
 
 
 %start program
@@ -85,6 +96,12 @@ instruction
 	;
 
 instruction_jump
+	: instruction_jump_label
+	| instruction_jump_direct_short
+	| instruction_jump_direct_long
+	;
+
+instruction_jump_label
 	: INSTRUCTION_JUMP IDENTIFIER SEMICOLON
 		{ $$ = makeInstIdentifier(INST_JUMP, $2); }
 	| INSTRUCTION_JUMPZ IDENTIFIER SEMICOLON
@@ -100,6 +117,39 @@ instruction_jump
 	| INSTRUCTION_JUMPNC IDENTIFIER SEMICOLON
 		{ $$ = makeInstIdentifier(INST_JUMPNC, $2); }
 	;
+
+instruction_jump_direct_short
+	: INSTRUCTION_JUMP NUMERIC_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMP, 0, $2); }
+	| INSTRUCTION_JUMPZ NUMERIC_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPZ, 0, $2); }
+	| INSTRUCTION_JUMPNZ NUMERIC_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPNZ, 0, $2); }
+	| INSTRUCTION_JUMPS NUMERIC_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPS, 0, $2); }
+	| INSTRUCTION_JUMPNS NUMERIC_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPNS, 0, $2); }
+	| INSTRUCTION_JUMPC NUMERIC_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPC, 0, $2); }
+	| INSTRUCTION_JUMPNC NUMERIC_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPNC, 0, $2); }
+	;
+
+instruction_jump_direct_long
+	: INSTRUCTION_JUMP ADDRESS_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMP, ($2 >> 8) & 0xFF, $2 & 0xFF); }
+	| INSTRUCTION_JUMPZ ADDRESS_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPZ, 0, $2); }
+	| INSTRUCTION_JUMPNZ ADDRESS_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPNZ, 0, $2); }
+	| INSTRUCTION_JUMPS ADDRESS_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPS, 0, $2); }
+	| INSTRUCTION_JUMPNS ADDRESS_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPNS, 0, $2); }
+	| INSTRUCTION_JUMPC ADDRESS_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPC, 0, $2); }
+	| INSTRUCTION_JUMPNC ADDRESS_LITERAL SEMICOLON
+		{ $$ = makeInstNumNum(INST_JUMPNC, 0, $2); }
 
 instruction_alu
 	: INSTRUCTION_ADD register_name COMMA register_name SEMICOLON 
