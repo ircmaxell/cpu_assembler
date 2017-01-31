@@ -1,5 +1,8 @@
+.offset 0xE000
 start:
-    MOV RA, 249;
+    MOV RA, 0x01;
+    JMP start;
+    CALL start;
 
 
 // 0x03 0x00 0x01 - MOV RA 0x01

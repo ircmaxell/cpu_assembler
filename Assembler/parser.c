@@ -14,6 +14,16 @@ instructionList *makeInstList(instruction *first) {
 	return result;
 }
 
+instructionList *makeInstList() {
+	instructionList *result = (instructionList*) malloc(sizeof(instructionList));
+	if (result == NULL) {
+		printf("Memory allocation error");
+		exit(-1);
+	}
+	result->size = 0;
+	return result;
+}
+
 instructionList *addInstructionToList(instructionList *list, instruction *next) {
 	list = (instructionList*) realloc(list, sizeof(instructionList) + (list->size + 1) * sizeof(instruction*));
 	if (list == NULL) {

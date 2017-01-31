@@ -21,6 +21,8 @@ whitespace	[ \n\r\t]*
 {comment}		{}
 {whitespace}	{}
 
+".offset"		{ return DIRECTIVE_OFFSET; }
+
 "MOV"			{ return INSTRUCTION_MOV; }
 "ADD"			{ return INSTRUCTION_ADD; }
 "SUB"			{ return INSTRUCTION_SUB; }
@@ -52,6 +54,7 @@ whitespace	[ \n\r\t]*
 ","				{ return COMMA; }
 ";"				{ return SEMICOLON; }
 ":"				{ return COLON; }
+
 0x[a-fA-F0-9]{1,2}  { yylval.ival = (unsigned char) strtol(yytext, NULL, 0); return NUMERIC_LITERAL; }
 0x[a-fA-F0-9]{3,4}  { yylval.address = (unsigned short) strtol(yytext, NULL, 0); return ADDRESS_LITERAL; }
 1?[0-9]{1,2}	{ yylval.ival = (unsigned char) atoi(yytext); return NUMERIC_LITERAL; }

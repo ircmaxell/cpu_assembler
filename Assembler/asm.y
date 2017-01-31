@@ -9,6 +9,7 @@ int yylex();
 int yyparse();
 extern FILE *yyin;
 instructionList *root;
+unsigned short offset = 0x0;
 %}
 
 %define parse.error verbose
@@ -21,6 +22,8 @@ instructionList *root;
 	instruction 	*inst;
 	instructionList *list;
 }
+
+%token  DIRECTIVE_OFFSET
 
 %token 	INSTRUCTION_HALT
 %token 	INSTRUCTION_MOV 
@@ -177,23 +180,32 @@ instruction_move
 		{ $$ = makeInstRegNum(INST_MOV, $2, $4); }
 	;
 
+directive
+	: DIRECTIVE_OFFSET ADDRESS_LITERAL
+		{ offset = $2; }
+	;
+
 program
 	: instruction
 		{ $$ = makeInstList($1); root = $$; }
 	| label
 		{ $$ = makeInstList($1); root = $$; }
+	| directive
+		{ $$ = makeInstList(); root = $$; }
 	| program instruction
 		{ $$ = addInstructionToList($1, $2); root = $$; }
 	| program label
 		{ $$ = addInstructionToList($1, $2); root = $$; }
-			
+	| program directive
+		{ $$ = $1; }
 	;
 %%
 
-instructionList *parse(FILE *in) {
+instructionList *parse(FILE *in, unsigned short *rel_offset) {
 	yyin = in;
 	do {
 		yyparse();
 	} while (!feof(yyin));
+	*rel_offset = offset;
 	return root;
 }

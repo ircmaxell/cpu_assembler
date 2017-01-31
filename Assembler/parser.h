@@ -72,6 +72,7 @@ typedef struct instructionList {
 } instructionList;
 
 instructionList *makeInstList(instruction *first);
+instructionList *makeInstList();
 instructionList *addInstructionToList(instructionList *list, instruction *next);
 
 instruction *makeInst(instructionType type);
@@ -83,4 +84,4 @@ instruction *makeInstRegNum(instructionType type, registerName a, unsigned char 
 instruction *makeInstIdentifier(instructionType type, char *label);
 
 void 			yyerror(const char*);
-instructionList *parse(FILE *in);
+instructionList *parse(FILE *in, unsigned short *rel_offset);

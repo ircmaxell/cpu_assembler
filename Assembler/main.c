@@ -11,11 +11,12 @@ int main(int argc, char **argv) {
 	char *bytes;
 	size_t i;
 	size_t size;
+	unsigned short offset;
 	if(argc == 2) {
 		if((in = fopen(argv[1], "rb")) != NULL) {
-			result = parse(in);
+			result = parse(in, &offset);
 			fclose(in);
-			bytes = assemble(result, &size);
+			bytes = assemble(result, &size, offset);
 			for (i = 0; i < size; i++) {
 				printf(" 0x%02x,", (unsigned char) bytes[i]);
 			}

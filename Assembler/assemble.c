@@ -36,8 +36,9 @@ static void reallocResult(assembleContext *context, size_t size);
 
 
 
-char *assemble(instructionList *list, size_t *size) {
+char *assemble(instructionList *list, size_t *size, unsigned short addressOffset) {
 	assembleContext context = {
+		addressOffset,
 		0,
 		(char *) malloc(sizeof(char)),
 		NULL,
@@ -105,7 +106,7 @@ static void assembleInstruction(instruction *inst, assembleContext *context) {
 				exit(-1);
 			}
 			location = (labelLocation*) malloc(sizeof(labelLocation));
-			location->offset = context->offset;
+			location->offset = context->offset + context->addressOffset;
 			HASH_ADD_KEYPTR(hh, context->labelLocations, key, size, location);
 			break;
 		};
@@ -214,7 +215,7 @@ static void assembleMov(instruction *inst, assembleContext *context) {
 }
 
 static void assembleCall(instruction *inst, assembleContext *context) {
-	size_t returnAddress = context->offset + 13;
+	size_t returnAddress = context->offset + context->addressOffset + 13;
 	reallocResult(context, 13);
 	context->result[(context->offset)++] = 0x03; // LOAD-I
 	context->result[(context->offset)++] = REGISTER_WO(RC);

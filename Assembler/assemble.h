@@ -13,6 +13,7 @@ typedef struct jumpLabelLocation {
 } jumpLabelLocation;
 
 typedef struct assembleContext {
+	size_t addressOffset;
 	size_t offset;
 	char *result;
 	labelLocation *labelLocations;
@@ -22,4 +23,4 @@ typedef struct assembleContext {
 	} jumpLabelLocations;
 } assembleContext;
 
-char *assemble(instructionList *list, size_t *size);
+char *assemble(instructionList *list, size_t *size, unsigned short offset);

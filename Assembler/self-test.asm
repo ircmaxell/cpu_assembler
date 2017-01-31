@@ -1,5 +1,8 @@
 // This is a self-test, similar to a POST (Power-On Self Test)
 
+// This lives in ROM, so we need to offset by 0xE000
+.offset 0xE000
+
 start:
 	CALL registerATest;
 	CALL registerBTest;
