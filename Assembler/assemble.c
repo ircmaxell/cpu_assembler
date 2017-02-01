@@ -51,7 +51,7 @@ char *assemble(instructionList *list, size_t *size, unsigned short addressOffset
 		assembleInstruction(list->elements[i], &context);
 	}
 	writeJumpLabelLocations(&context);
-	context.result[context.offset++] = 0;
+	context.result[context.offset++] = 0x7F;
 	*size = context.offset;
 	return context.result;
 }
@@ -60,7 +60,7 @@ static void assembleInstruction(instruction *inst, assembleContext *context) {
 	switch(inst->type) {
 		case INST_HALT:
 			reallocResult(context, 1);
-			context->result[context->offset++] = 0x00;
+			context->result[context->offset++] = 0x7F;
 			break;
 		case INST_ADD:
 		case INST_SUB:
@@ -239,7 +239,7 @@ static void assembleReturn(instruction *inst, assembleContext *context) {
 	context->result[(context->offset)++] = REGISTER_WO(RJ2); // push
 	context->result[(context->offset)++] = 0x08; // pop
 	context->result[(context->offset)++] = REGISTER_WO(RJ1); // push
-	context->result[(context->offset)++] = 0x31; // jump-indirect
+	context->result[(context->offset)++] = 0x40; // jump-indirect
 }
 
 static void assemblePush(instruction *inst, assembleContext *context) {
