@@ -27,7 +27,7 @@ fiboLoop:
 	ADD RC, RB;
 	JMPC fibo;
 	MOV RA, RB;
-	MOV RC, RB;
+	MOV RB, RC;
 	JMP fiboLoop;
 
 pass:
