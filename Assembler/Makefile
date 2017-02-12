@@ -15,7 +15,7 @@ asm.tab.c: asm.y
 	bison -d asm.y
 
 test: compile
-	./test test.asm
+	./test test.asm > test.rom
 
 clean:
 	rm lex.yy.c
