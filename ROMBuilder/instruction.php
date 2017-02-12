@@ -87,6 +87,8 @@ class OpCode {
 			$codes = $instruction->getOpcodes($zero, $sign, $carry);
 			if (count($codes) > 16) {
 				throw new \LogicException("Too many clock states for {$instruction->name}: " . count($codes));
+			} else {
+				var_dump(count($codes));
 			}
 			foreach ($codes as $clock => $microInstruction) {
 				$address = ($i<<11) | ($clock << 7) | $lowAddress;
@@ -130,7 +132,6 @@ class Instruction {
 			["PC-O", "MEM-O"],
 			// INC PC
 			["INCDEC-O", "PC-W"],
-			["INCDEC-O"],
 		], $this->after);
 
 		$flag = ($zero ? 1 : 0) | ($sign ? 2 : 0) | ($carry ? 4 : 0);
@@ -175,22 +176,17 @@ function alu($name): array {
 		// Normal
 		new Instruction($name, $code, [
 			["PC-O", "MEM-O", "INC-W", "RI-W",],
-			["PC-O", "MEM-O"],
 			["INCDEC-O", "PC-W", "RIO-X", "ALU-$name", "ALU-W"],
-			["INCDEC-O", "RIO-X", "ALU-$name"],
+			["RIO-X", "ALU-$name"],
 			["ALU-O", "RIW-X"],
-			["ALU-O"],
 		]),
 		// Mem
 		new Instruction("$name-I", $code + 0x10, [
 			["PC-O", "MEM-O", "INC-W", "RI-W",],
-			["PC-O", "MEM-O"],
 			["INCDEC-O", "PC-W"],
-			["INCDEC-O"],
 			["PC-O", "MEM-O", "ALU-$name", "INC-W", "ALU-W"],
 			["PC-O", "MEM-O", "ALU-$name"],
 			["INCDEC-O", "PC-W", "ALU-O", "RIW-X"],
-			["INCDEC-O", "ALU-O"],
 		]),
 	];
 }
@@ -210,25 +206,20 @@ function jump($name): array {
 		[
 			// default (not jumping)
 			["INCDEC-O", "PC-W"],
-			["INCDEC-O"],
 		],
 		[
 			// match (jumping)
 			["J-O", "PC-W"],
-			["J-O"],
 		]
 	];
 
 	$maskPartsImmediate = [
 		[
 			["PC-O", "MEM-O", "INC-W"],
-			["PC-O", "MEM-O"],
 			["INCDEC-O", "PC-W"],
-			["INCDEC-O"],
 		],
 		[
 			["J-O", "PC-W"],
-			["J-O"],
 		]
 	];
 
@@ -237,7 +228,6 @@ function jump($name): array {
 			["PC-O", "MEM-O", "INC-W", "J1-W"],
 			["PC-O", "MEM-O"],
 			["INCDEC-O", "PC-W"],
-			["INCDEC-O"],
 			["PC-O", "MEM-O", "INC-W", "J2-W"],
 			["PC-O", "MEM-O"],
 		], [
@@ -257,70 +247,61 @@ function jump($name): array {
 $instructions = a(
 	new Instruction("RESET", 0x00, [
 		["0x7FFF-O", "SC-W"],
-		["0x7FFF-O"],
 		["0xC000-O", "PC-W"],
-		["0xC000-O", "NEXT"],
+		["NEXT"],
 	]),
 	new Instruction("HALT", 0x7F, [
 		["HALT"],
 	]),
 	new Instruction("MOV", 0x01, [
 		["PC-O", "MEM-O", "INC-W", "RI-W",],
-		["PC-O", "MEM-O"],
 		["INCDEC-O", "RIO-X", "PC-W", "RIW-X"],
-		["INCDEC-O", "RIO-X"],
 	]),
 	new Instruction("LOAD", 0x02, [
 		["PC-O", "MEM-O", "INC-W", "RI-W",],
-		["PC-O", "MEM-O"],
 		["INCDEC-O", "PC-W"],
-		["INCDEC-O"],
 		["J-O", "MEM-O", "RIW-X"],
-		["J-O", "MEM-O"],
 	]),
 	new Instruction("LOAD-I", 0x03, [
 		["PC-O", "MEM-O", "INC-W", "RI-W",],
-		["PC-O", "MEM-O"],
 		["INCDEC-O", "PC-W"],
-		["INCDEC-O"],
 		["PC-O", "MEM-O", "INC-W", "RIW-X"],
-		["PC-O", "MEM-O"],
 		["INCDEC-O", "PC-W"],
-		["INCDEC-O"],
 	]),
 	new Instruction("STORE", 0x05, [
 		["PC-O", "MEM-O", "INC-W", "RI-W",],
+		["INCDEC-O", "PC-W"],
+		["J-O", "RIO-X", "MEM-W"],
+		["J-O", "RIO-X"],
+	]),
+	new Instruction("STORE-I", 0x06, [
+		["PC-O", "MEM-O", "INC-W", "RI-W",],
+		["INCDEC-O", "PC-W"],
+		["PC-O", "MEM-O", "INC-W", "J1-W",],
 		["PC-O", "MEM-O"],
 		["INCDEC-O", "PC-W"],
-		["INCDEC-O"],
+		["PC-O", "MEM-O", "INC-W", "J2-W",],
+		["PC-O", "MEM-O"],
+		["INCDEC-O", "PC-W"],
 		["J-O", "RIO-X", "MEM-W"],
 		["J-O", "RIO-X"],
 	]),
 	new Instruction("PUSH", 0x07, [
 		["PC-O", "MEM-O", "INC-W", "RI-W",],
-		["PC-O", "MEM-O"],
 		["INCDEC-O", "PC-W"],
-		["INCDEC-O"],
 		["SC-O", "RIO-X", "DEC-W", "MEM-W"],
 		["SC-O", "RIO-X"],
 		["INCDEC-O", "SC-W"],
-		["INCDEC-O"],
 	]),
 	new Instruction("POP", 0x08, [
 		["PC-O", "MEM-O", "INC-W", "RI-W",],
-		["PC-O", "MEM-O"],
 		["INCDEC-O", "PC-W"],
-		["INCDEC-O"],
 		["SC-O", "INC-W"],
-		["SC-O"],
 		["INCDEC-O", "MEM-O", "SC-W", "RIW-X"],
-		["INCDEC-O", "MEM-O"],
 	]),
 	new Instruction("FLAG", 0x09, [
 		["PC-O", "MEM-O", "INC-W", "RI-W",],
-		["PC-O", "MEM-O"],
 		["INCDEC-O", "ALU-FLAG-O", "PC-W", "RIW-X"],
-		["INCDEC-O", "ALU-FLAG-O"],
 	]),
 	...alu("ADD"),
 	...alu("SUB"),
