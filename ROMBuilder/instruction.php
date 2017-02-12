@@ -303,6 +303,16 @@ $instructions = a(
 		["PC-O", "MEM-O", "INC-W", "RI-W",],
 		["INCDEC-O", "ALU-FLAG-O", "PC-W", "RIW-X"],
 	]),
+	new Instruction("CMP", 0x0A, [
+		["PC-O", "MEM-O", "INC-W", "RI-W",],
+		["INCDEC-O", "PC-W", "RIO-X", "ALU-SUB", "ALU-W"],
+		["RIO-X", "ALU-SUB"],
+	]),
+	new Instruction("CMP-I", 0x0B, [
+		["PC-O", "MEM-O", "INC-W", "ALU-SUB", "ALU-W"],
+		["PC-O", "MEM-O", "ALU-SUB"],
+		["INCDEC-O", "PC-W"],
+	]),
 	...alu("ADD"),
 	...alu("SUB"),
 	...alu("INC"),
