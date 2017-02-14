@@ -32,12 +32,14 @@ class Assembler {
 			NOOP;
 		";
 
+		$code = preg_replace('(//[^\n\r]*$)im', '', $code);
+		$code = preg_replace('(^\s*(\r\n|\n|\r))im', '', $code);
 		$arg = "[A-Z0-9_]*";
 		$label = "[A-Z0-9_-]+";
 		$command = "[A-Z][A-Z0-9-]*";
 		$parser = "(^((?:\s*$label:\s*)*)\s*(\.?$command)(\s+$arg\s*(,(?3)|\\$\s*-\s*$label|'[^']*'(,(?3))?)?)?(;.*)?$)im";
 		preg_match_all($parser, $code, $matches, PREG_SET_ORDER);
-		var_dump($matches);
+
 		$section = "TEXT";
 		foreach ($matches as $match) {
 			$newLabels = $this->extractLabels($match[1]);
@@ -56,7 +58,7 @@ class Assembler {
 					if ($numArgs > count($args) - $argOffset) {
 						throw new \LogicException("Not enough arguments for $name");
 					}
-					if ($arg instanceof Argument\Address && !is_numeric($args[$argOffset])) {
+					if ($arg instanceof Argument\Address && substr($args[$argOffset], 0, 2) !== '0x') {
 						// indirect jump
 						$addresses[$args[$argOffset]][] = strlen($result);
 						$result .= $arg->encode(["0x0000"]);
@@ -126,7 +128,7 @@ class Assembler {
 				$memoryOffset += $size;
 			} elseif ($section === "RODATA" || $section === "DATA") {
 				$name = $match[2]; // restore case
-				$labels[$name] = $addressOffset + strlen($result);
+				$labels[$name] = $addressOffset + strlen($result) + 1;
 				if ($section === "DATA") {
 					$dataSegments[$name] = [$addressOffset + strlen($result)];
 				}
@@ -224,22 +226,29 @@ class Assembler {
 	}
 
 
-	public function disassemble(string $code): string {
+	public function disassemble(string $code, int $printOffset): string {
 		$offset = 0;
 		$result = "";
 		while ($offset < strlen($code)) {
 			$nibble = ord($code[$offset++]);
+			$result .= sprintf("%016b (%04X) - %02X ", $printOffset + $offset - 1, $printOffset + $offset - 1, $nibble);
 			if (!isset($this->instructionSet->instructions[$nibble])) {
 				throw new \RuntimeException("Unknown instruction $nibble");
 			}
 			$instruction = $this->instructionSet->instructions[$nibble];
-			$result .= $instruction->name;
 			$decodedArgs = [];
+			$rawArg = '';
 			foreach ($instruction->args as $arg) {
 				$encodedArg = substr($code, $offset, $arg->numberOfBytes());
+				$encodedLen = strlen($encodedArg);
+				for ($i = $encodedLen - 1; $i >= 0; $i--) {
+					$rawArg .= sprintf(" %02X", ord(substr($encodedArg, -1 - $i, 1)));
+				}
 				$offset += $arg->numberOfBytes();
 				$decodedArgs = array_merge($decodedArgs, $arg->decode($encodedArg));
 			}
+			$result .= sprintf("%-10s", trim($rawArg));
+			$result .= " - " . $instruction->name;
 			if ($decodedArgs) {
 				$result .= " " . implode(", ", $decodedArgs);
 			}
