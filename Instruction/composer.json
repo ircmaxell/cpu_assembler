@@ -1,0 +1,16 @@
+{
+    "name": "ircmaxell/tinycomputer",
+    "description": "A tiny computer processing system",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anthony Ferrara",
+            "email": "ircmaxell@gmail.com"
+        }
+    ],
+    "require": {},
+    "autoload": {
+        "psr-4": {"TinyComputer\\": "."}
+    }
+}

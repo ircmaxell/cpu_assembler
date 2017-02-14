@@ -70,6 +70,18 @@ $instructions = a(
 	[
 		0x0B, "CMP-I", ["VALUE"]
 	],
+	[
+		0x0C, "MEMCPY", ["ADDRESS", "VALUE"]
+	],
+	[
+		0x0D, "MEMCPY-I", ["VALUE"]
+	],
+	[
+		0x50, "INC16", ["RI-RW", "RI-RW"]
+	],
+	[
+		0x51, "DEC16", ["RI-RW", "RI-RW"]
+	],
 	...alu(0x10, "ADD"),
 	...alu(0x11, "SUB"),
 	...alu(0x12, "AND"),

@@ -87,8 +87,6 @@ class OpCode {
 			$codes = $instruction->getOpcodes($zero, $sign, $carry);
 			if (count($codes) > 16) {
 				throw new \LogicException("Too many clock states for {$instruction->name}: " . count($codes));
-			} else {
-				var_dump(count($codes));
 			}
 			foreach ($codes as $clock => $microInstruction) {
 				$address = ($i<<11) | ($clock << 7) | $lowAddress;
@@ -313,6 +311,64 @@ $instructions = a(
 		["PC-O", "MEM-O", "ALU-SUB"],
 		["INCDEC-O", "PC-W"],
 	]),
+	new Instruction("MEMCPY", 0x0C, [
+		["PC-O", "MEM-O", "INC-W", "J1-W",],
+		["PC-O", "MEM-O"],
+		["INCDEC-O", "PC-W"],
+		["PC-O", "MEM-O", "INC-W", "J2-W",],
+		["PC-O", "MEM-O"],
+		["INCDEC-O", "PC-W"],
+		["PC-O", "INC-W", "MEM-O", "ALU-SELF", "ALU-W"],
+		["PC-O", "MEM-O", "ALU-SELF"],
+		["INCDEC-O", "PC-W"],
+		["J-O", "ALU-O", "MEM-W"],
+		["J-O", "ALU-O"],
+	]),
+	new Instruction("MEMCPY-I", 0x0D, [
+		["PC-O", "INC-W", "MEM-O", "ALU-SELF", "ALU-W"],
+		["PC-O", "MEM-O", "ALU-SELF"],
+		["INCDEC-O", "PC-W"],
+		["J-O", "ALU-O", "MEM-W"],
+		["J-O", "ALU-O"],
+	]),
+	new Instruction("INC16", 0x50, [
+			["PC-O", "MEM-O", "INC-W", "RI-W",],
+			["INCDEC-O", "PC-W", "RIO-X", "ALU-INC", "ALU-W"],
+			["RIO-X", "ALU-INC"],
+			["ALU-O", "RIW-X"],
+		], [
+			"default" => [
+				["PC-O", "INC-W"],
+				["INCDEC-O", "PC-W"],
+			],
+			"mask" => 0x04,
+			"match" => [
+				["PC-O", "MEM-O", "INC-W", "RI-W",],
+				["INCDEC-O", "PC-W", "RIO-X", "ALU-INC", "ALU-W"],
+				["RIO-X", "ALU-INC"],
+				["ALU-O", "RIW-X"],
+			],
+		]
+	),
+	new Instruction("DEC16", 0x51, [
+			["PC-O", "MEM-O", "INC-W", "RI-W",],
+			["INCDEC-O", "PC-W", "RIO-X", "ALU-DEC", "ALU-W"],
+			["RIO-X", "ALU-INC"],
+			["ALU-O", "RIW-X"],
+		], [
+			"default" => [
+				["PC-O", "INC-W"],
+				["INCDEC-O", "PC-W"],
+			],
+			"mask" => 0x04,
+			"match" => [
+				["PC-O", "MEM-O", "INC-W", "RI-W",],
+				["INCDEC-O", "PC-W", "RIO-X", "ALU-DEC", "ALU-W"],
+				["RIO-X", "ALU-INC"],
+				["ALU-O", "RIW-X"],
+			],
+		]
+	),
 	...alu("ADD"),
 	...alu("SUB"),
 	...alu("INC"),
@@ -345,6 +401,9 @@ $codes = [];
 
 foreach ($instructions as $instruction) {
 	$codes[$instruction->instructionCode] = true;
+	if ($instruction->instructionCode == 0x0C) {
+		var_dump($instruction->getOpcodes(false, false, false));
+	}
 	foreach (OpCode::mux($instruction) as $address => $code) {
 		$roms["A-BUS"][$address] = chr(($code) & 0xFF);
 		$roms["D-BUS"][$address] = chr(($code >> 8) & 0xFF);
