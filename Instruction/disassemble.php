@@ -11,7 +11,13 @@ if ($_SERVER['argc'] < 2) {
 	die("Required: filename argument\n");
 }
 
-$code = file_get_contents($_SERVER['argv'][1]);
+
+if ($_SERVER['argv'][1] === '-') {
+	// get from stdin
+	$code = file_get_contents("php://stdin");
+} else {
+	$code = file_get_contents($_SERVER['argv'][1]);
+}
 
 $offset = $_SERVER['argc'] > 2 ? intval($_SERVER['argv'][2], 0) : 0;
 

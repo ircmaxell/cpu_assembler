@@ -15,7 +15,7 @@ class Assembler {
 		$this->instructionSet = $instructionSet;
 	}
 
-	public function assemble(string $code): string {
+	public function assemble(string $code, bool $includeSelfTest = true): string {
 		$addressOffset = 0;
 		$memoryOffset = 0;
 		$result = "";
@@ -23,14 +23,23 @@ class Assembler {
 		$addresses = [];
 		$dataSegments = [];
 
-		$code = "
-		.offset 0xC000
-		JUMP __init__;
-		__start__: " . $code . "
-		.text
-		__init__:
-			NOOP;
-		";
+		
+		if ($includeSelfTest) {
+			$code = "
+				.offset 0xC000
+				" . file_get_contents(__DIR__ . "/self-test.asm")
+				. "
+				__start__:
+				"
+				. $code;
+		} else {
+			$code = "
+				.offset 0xC000
+				JUMP __init__;
+				__start__:
+				" 
+				. $code;
+		}
 
 		$code = preg_replace('(//[^\n\r]*$)im', '', $code);
 		$code = preg_replace('(^\s*(\r\n|\n|\r))im', '', $code);
@@ -149,19 +158,31 @@ class Assembler {
 				throw new \LogicException("Unknown Instruction $name");
 			}
 		}
-		foreach ($dataSegments as $name => $segment) {
-			// LOAD-I RB, $segment[0][high]
-			// LOAD-I RC, $segment[0][low]
-			// LOAD-M RA, RB, RC
-			// STORE-I RA, $labels[$name]
-			// INC16 RC, RB
-			// LOAD-M RA, RB, RC
-			// STORE-I RA, $labels[$name]
-			// TODO: write code here to initialize RAM
+		if (!empty($dataSegments)) {
+			$labels["__init__"] = $addressOffset + strlen($result) - 1;
+			foreach ($dataSegments as $name => $segment) {
+				// LOAD-I RB, $segment[0][high]
+				// LOAD-I RC, $segment[0][low]
+				// LOAD-M RA, RB, RC
+				// STORE-I RA, $labels[$name]
+				// INC16 RC, RB
+				// LOAD-M RA, RB, RC
+				// STORE-I RA, $labels[$name]
+				// TODO: write code here to initialize RAM
+			}
+			// JUMP start
+			$result .= chr(0x30) . chr(0x00) . chr(0x00);
+			$addresses["__start__"][] = strlen($result) - 2;
+		} else {
+			// zero out init and the original jump
+			foreach ($addresses["__init__"] as $addr) {
+				// zero out the jump as well
+				$result[$addr - 1] = "\0";
+				$result[$addr] = "\0";
+				$result[$addr + 1] = "\0";
+			}
+			unset($addresses["__init__"]);
 		}
-		// JUMP start
-		$result .= chr(0x30) . chr(0x00) . chr(0x00);
-		$addresses["__start__"][] = strlen($result) - 2;
 		foreach ($addresses as $label => $offsets) {
 			if (!isset($labels[$label])) {
 				throw new \RuntimeException("Unknown label for indirect jump: $label");

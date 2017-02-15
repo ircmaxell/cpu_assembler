@@ -21,7 +21,7 @@ class InstructionSet {
 	}
 
 	protected function setAllInstructionsToNoOp() {
-		$this->namedInstructions['NOOP'] = new Instruction\NoOp;
+		$this->namedInstructions['NOOP'] = new Instruction\NOOP;
 		$this->instructions = array_fill(0, 0x7F, $this->namedInstructions['NOOP']);
 	}
 

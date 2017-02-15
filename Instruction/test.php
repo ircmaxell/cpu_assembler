@@ -27,19 +27,17 @@ start:
 	JUMP start;
 ";
 
-$fibo = "
-start:
-	LOAD-I RA, 0x01;
-	LOAD-I RB, 0x01;
-loop:
-	ADD RC, RB;
-	JUMP-C start;
-	MOV RA, RB;
-	MOV RB, RC;
-	JUMP loop;
-";
+if (isset($_SERVER['argv'][1])) {
+	if ($_SERVER['argv'][1] === '-') {
+		$program = file_get_contents("php://stdin");
+	} else {
+		$program = file_get_contents($_SERVER['argv'][1]);
+	}
+} else {
+	$program = $helloWorld;
+}
 
-$program = $assembler->assemble($helloWorld);
+$program = $assembler->assemble($program, empty($_SERVER['argv'][2]));
 
 echo $assembler->disassemble($program, 0xC000);
 

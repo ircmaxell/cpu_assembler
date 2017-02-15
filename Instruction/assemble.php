@@ -14,7 +14,9 @@ if ($_SERVER['argc'] < 2) {
 
 $code = file_get_contents($_SERVER['argv'][1]);
 
-$encoded = $assembler->assemble($code);
+$includeSelfTest = empty($_SERVER['argv'][2]);
+
+$encoded = $assembler->assemble($code, $includeSelfTest);
 
 $result = '';
 $len = strlen($encoded);

@@ -1,6 +1,5 @@
 
-
-start:
+.text
 	CALL registerATest;
 	CALL registerBTest;
 	CALL registerCTest;
@@ -15,17 +14,8 @@ start:
 	CALL aluORTest4;
 	CALL testPush;
 	CALL reset;
-	CALL fibo;
-
-fibo:
-	LOAD-I RA, 0x01;
-	LOAD-I RB, 0x01;
-fiboLoop:
-	ADD RC, RB;
-	JUMP-C fibo;
-	MOV RA, RB;
-	MOV RB, RC;
-	JUMP fiboLoop;
+	JUMP __init__;
+	JUMP __start__;
 
 pass:
 	RETURN;
@@ -142,7 +132,3 @@ reset:
 		LOAD-I RJ1, 0xFF;
 		LOAD-I RJ2, 0xFF;
 		RETURN;
-
-
-
-

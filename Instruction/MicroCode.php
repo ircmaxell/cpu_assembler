@@ -19,17 +19,28 @@ class MicroCode {
 	const NEXT 		= 0b00000010;
 	const INST_W	= 0b00000001;
 
+	const ALU_OP_MASK   = 0b11100000 << 8;
+	const ALU_INV_A     = 0b00010000 << 8;
+	const ALU_ZERO_A    = 0b00001000 << 8;
+
 	const ALU_ADD		= 0b00000000 << 8;
-	const ALU_SUB		= 0b00001000 << 8;
-	const ALU_INC		= 0b00010000 << 8;
-	const ALU_DEC		= 0b00011000 << 8;
+	const ALU_SUB		= 0b00010000 << 8;
+
 	const ALU_XOR		= 0b00100000 << 8;
 	const ALU_NOT		= 0b00111000 << 8;
-	const ALU_AND		= 0b01000000 << 8;
-	const ALU_ZERO		= 0b01010000 << 8;
-	const ALU_OR		= 0b01100000 << 8;
-	const ALU_FF		= 0b01110000 << 8;
-	const ALU_SELF		= 0b00110000 << 8;
+
+	const ALU_INC		= 0b00001000 << 8;
+	const ALU_DEC		= 0b00011000 << 8;
+	
+	const ALU_OR		= 0b01000000 << 8;
+
+	const ALU_SELF		= 0b01001000 << 8;
+	
+	const ALU_AND		= 0b01100000 << 8;
+	const ALU_ZERO		= 0b01101000 << 8;
+	
+	const ALU_FF		= 0b01011000 << 8;
+	
 	const ALU_O			= 0b00000100 << 8;
 	const ALU_W			= 0b00000001 << 8;
 	const ALU_FLAG_O	= 0b00000010 << 8;

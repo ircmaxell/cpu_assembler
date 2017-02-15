@@ -1,8 +1,9 @@
+#include <Adafruit_MCP23017.h>
 #include "IO_Controller.h"
 #include <LiquidCrystal_I2C.h>
 
 struct {
-  LiquidCrystal_I2C main = LiquidCrystal_I2C(MAIN_LCD_I2C_ADDRESS, 40, 3);
+  LiquidCrystal_I2C main = LiquidCrystal_I2C(MAIN_LCD_I2C_ADDRESS, 20, 4);
   struct {
     uint8_t row = 0;
     uint8_t column = 0;
@@ -12,20 +13,24 @@ struct {
   uint8_t secondaryLineBufferPosition = 0;
 } displays;
 
+struct {
+  Adafruit_MCP23017 a;
+  Adafruit_MCP23017 b;
+} bus;
 
-
-volatile struct {
-  byte portA = 0;
-  byte portB = 0;
-  byte portC = 0;
-  byte portD = 0;
-  byte portG = 0;
-  byte portL = 0;
-  bool needsProcessing = false;
-} registerState;
-
+volatile bool needsProcessing = false;
+volatile bool needsDebugging = false;
 
 void setup() {
+
+  bus.a.begin(1);
+  bus.b.begin(2);
+
+  for (uint8_t i = 0; i < 16; i++) {
+    bus.a.pinMode(i, INPUT);
+    bus.b.pinMode(i, INPUT);
+  }
+
   displays.main.begin();
   displays.secondary.begin();
   displays.main.backlight();
@@ -33,76 +38,101 @@ void setup() {
   displays.main.noCursor();
   displays.secondary.noCursor();
 
-  // bottom 8 address bits
-  pinMode(22, INPUT);
-  pinMode(24, INPUT);
-  pinMode(26, INPUT);
-  pinMode(28, INPUT);
-  pinMode(30, INPUT);
-  pinMode(32, INPUT);
-  pinMode(34, INPUT);
-  pinMode(36, INPUT);
-  // top 8 address bits
-  pinMode(38, INPUT);
-  pinMode(40, INPUT);
-  pinMode(42, INPUT);
-  pinMode(44, INPUT);
-  pinMode(46, INPUT);
-  pinMode(48, INPUT);
-  pinMode(50, INPUT);
-  pinMode(52, INPUT);
-  // data
-  pinMode(23, INPUT);
-  pinMode(25, INPUT);
-  pinMode(27, INPUT);
-  pinMode(29, INPUT);
-  pinMode(31, INPUT);
-  pinMode(33, INPUT);
-  pinMode(35, INPUT);
-  pinMode(37, INPUT);
+  displays.main.clear();
+  writeMain(String("Address: 0x0000"));
+  displays.main.setCursor(0, 1);
+  writeMain(String("Address:       "));
+  displays.main.setCursor(0, 2);
+  writeMain(String("Data: 0x00"));
+  displays.main.setCursor(0, 3);
+  writeMain(String("Data:     "));
 
-  attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), readInterrupt, RISING);
+  pinMode(READ_INTERRUPT_PIN, INPUT);
+  pinMode(WRITE_INTERRUPT_PIN, INPUT);
+
+  attachInterrupt(digitalPinToInterrupt(READ_INTERRUPT_PIN), readInterrupt, RISING);
+  attachInterrupt(digitalPinToInterrupt(WRITE_INTERRUPT_PIN), writeInterrupt, RISING);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if (!registerState.needsProcessing) {
+  if (!needsProcessing && !needsDebugging) {
     return;
   }
-  registerState.needsProcessing = false;
-  address current = (ADDRESS_HIGH(registerState) << 8) | ADDRESS_LOW(registerState);
-  byte data = DATA(registerState);
-  if (current < 0x8000 || current > 0x807F) {
-    return;
-  }
-  if (current == 0x807E) {
+  bool isWrite = needsProcessing;
+  needsProcessing = false;
+  needsDebugging = false;
+  
+  address addr = (bus.b.readGPIO(0) << 8) | bus.a.readGPIO(0);
+  byte data = reverse(bus.a.readGPIO(1));
+
+  if (isWrite && addr == 0x807E) {
     if (data == 0x0A) {
       // line feed
       handleSecondaryLineFeed();
       return;
-    } else if (displays.secondaryLineBufferPosition >= 15) {
+    } else if (isWrite && displays.secondaryLineBufferPosition >= 15) {
       handleSecondaryLineFeed();
     }
     displays.secondary.write(data);
     displays.secondaryLineBuffer[displays.secondaryLineBufferPosition++] = data;
-  } else if (current == 0x807F) {
+  } else if (isWrite && addr == 0x807F) {
     displays.secondary.clear();
-  } else if (current < 0x8078) {
-    writeMainDisplay(current - 0x8000, data);
-  } else if (current == 0x8078) {
-    displays.main.clear();
-  } else if (current == 0x8079) {
-    if (data) {
-      displays.main.cursor();
-      displays.main.blink();
-    } else {
-      displays.main.noCursor();
-      displays.main.noBlink();
-    }
-  } else if (current == 0x807A) {
-    displays.mainCursorPosition.row = decodeRow(data);
-    displays.mainCursorPosition.column = decodeColumn(data);
-    resetCursor();
+  }
+
+  debug(addr, data);
+}
+
+void debug(address addr, byte data) {
+  size_t i;
+  String addrHex = String(addr, HEX);
+  String addrDec = String(addr, DEC);
+  String dataHex = String(data, HEX);
+  String dataDec = String(data, DEC);
+
+  displays.main.setCursor(11, 0);
+  writePaddedMain(addrHex, 4, '0');
+
+  displays.main.setCursor(9, 1);
+  writePaddedMain(addrDec, 6, ' ');
+ 
+  
+  displays.main.setCursor(8, 2);
+  writePaddedMain(dataHex, 2, '0');
+  
+  displays.main.setCursor(6, 3);
+  writePaddedMain(dataDec, 4, ' ');
+}
+
+byte reverse(byte b) {
+  byte r = (b & 0xF0) >> 4 | (b & 0x0F) << 4;
+  r = (r & 0xCC) >> 2 | (r & 0x33) << 2;
+  return (r & 0xAA) >> 1 | (r & 0x55) << 1;
+}
+
+void writePaddedMain(String str, size_t pad_len, const char pad) {
+  switch (pad_len - str.length()) {
+    case 6:
+      displays.main.write(pad);
+    case 5:
+      displays.main.write(pad);
+    case 4:
+      displays.main.write(pad);
+    case 3:
+      displays.main.write(pad);
+    case 2:
+      displays.main.write(pad);
+    case 1:
+      displays.main.write(pad);
+    default:
+      writeMain(str);
+  }
+}
+
+void writeMain(String str) {
+  size_t len = str.length();
+  for (size_t i = 0; i < len; i++) {
+    displays.main.write(str.charAt(i));
   }
 }
 
@@ -135,12 +165,10 @@ void writeMainDisplay(uint8_t coded, byte data) {
 
 
 void readInterrupt() {
-  registerState.portA = PINA;
-  registerState.portB = PINB;
-  registerState.portC = PINC;
-  registerState.portD = PIND;
-  registerState.portG = PING;
-  registerState.portL = PINL;
-  registerState.needsProcessing = true;
+  needsDebugging = true;
+}
+
+void writeInterrupt() {
+  needsProcessing = true;
 }
 
