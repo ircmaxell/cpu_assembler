@@ -15,7 +15,7 @@ class Assembler {
 		$this->instructionSet = $instructionSet;
 	}
 
-	public function assemble(string $code, bool $includeSelfTest = true): string {
+	public function assemble(string $code, bool $includeSelfTest = true, $offset = 0xC000): string {
 		$addressOffset = 0;
 		$memoryOffset = 0;
 		$result = "";
@@ -26,7 +26,6 @@ class Assembler {
 		
 		if ($includeSelfTest) {
 			$code = "
-				.offset 0xC000
 				" . file_get_contents(__DIR__ . "/self-test.asm")
 				. "
 				__start__:
@@ -34,12 +33,12 @@ class Assembler {
 				. $code;
 		} else {
 			$code = "
-				.offset 0xC000
 				JUMP __init__;
 				__start__:
 				" 
 				. $code;
 		}
+		$code = '.offset 0x' . dechex($offset) . "\n" . $code;
 
 		$code = preg_replace('(//[^\n\r]*$)im', '', $code);
 		$code = preg_replace('(^\s*(\r\n|\n|\r))im', '', $code);
@@ -268,7 +267,7 @@ class Assembler {
 				$offset += $arg->numberOfBytes();
 				$decodedArgs = array_merge($decodedArgs, $arg->decode($encodedArg));
 			}
-			$result .= sprintf("%-10s", trim($rawArg));
+			$result .= sprintf("%-12s", trim($rawArg));
 			$result .= " - " . $instruction->name;
 			if ($decodedArgs) {
 				$result .= " " . implode(", ", $decodedArgs);

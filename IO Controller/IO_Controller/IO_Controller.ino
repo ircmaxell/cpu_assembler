@@ -67,7 +67,8 @@ void loop() {
   byte data = reverse(bus.a.readGPIO(1));
 
   if (isWrite && addr == 0x807E) {
-    if (data == 0x0A) {
+    // \n or \r
+    if (data == 0x0A || data == 0x0D) {
       // line feed
       handleSecondaryLineFeed();
       return;

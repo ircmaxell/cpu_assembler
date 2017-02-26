@@ -3,6 +3,8 @@
 	CALL registerATest;
 	CALL registerBTest;
 	CALL registerCTest;
+	CALL registerM1Test;
+	CALL registerM2Test;
 	CALL aluADDTest;
 	CALL aluADDTest2;
 	CALL aluADDTest3;
@@ -35,6 +37,18 @@ registerBTest:
 registerCTest:
 		LOAD-I RC, 0xFF;
 		NOT RC, RC;
+		JUMP-Z pass;
+		HALT;
+
+registerM1Test:
+		LOAD-I RM1, 0xFF;
+		NOT RM1, RM1;
+		JUMP-Z pass;
+		HALT;
+
+registerM2Test:
+		LOAD-I RM2, 0xFF;
+		NOT RM2, RM2;
 		JUMP-Z pass;
 		HALT;
 

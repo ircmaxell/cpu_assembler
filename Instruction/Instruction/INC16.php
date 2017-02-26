@@ -11,7 +11,7 @@ use TinyComputer\MicroCode as M;
 class INC16 extends Instruction {
 
 	public function __construct() {
-		parent::__construct("INC16", 0x50, new Argument\ReadWriteRegister, new Argument\ReadWriteRegister);
+		parent::__construct("INC-16", 0x50, new Argument\ReadWriteRegister, new Argument\ReadWriteRegister);
 	}
 
 	protected function getInternalMicroCode(Flag $flag): array {

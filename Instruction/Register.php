@@ -10,6 +10,8 @@ class Register {
 	const RC = 0x2;
 	const RJ1 = 0x3;
 	const RJ2 = 0x4;
+	const RM1 = 0x5;
+	const RM2 = 0x6;
 
 	const LOOKUP = [
 		self::RA => "RA",
@@ -17,6 +19,8 @@ class Register {
 		self::RC => "RC",
 		self::RJ1 => "RJ1",
 		self::RJ2 => "RJ2",
+		self::RM1 => "RM1",
+		self::RM2 => "RM2",
 	];
 
 	const REVERSE_LOOKUP = [
@@ -25,6 +29,8 @@ class Register {
 		"RC" => self::RC,
 		"RJ1" => self::RJ1,
 		"RJ2" => self::RJ2,
+		"RM1" => self::RM1,
+		"RM2" => self::RM2,
 	];
 
 	public static function encodeRead(int $register): int {

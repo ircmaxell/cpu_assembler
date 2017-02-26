@@ -11,7 +11,7 @@ use TinyComputer\MicroCode as M;
 class MEMCPY_A extends Instruction {
 
 	public function __construct() {
-		parent::__construct("MEMCPY_A", 0x70, new Argument\Address, new Argument\Address);
+		parent::__construct("MEMCPY-A", 0x70, new Argument\Address, new Argument\Address);
 	}
 
 	protected function getInternalMicroCode(Flag $flag): array {
